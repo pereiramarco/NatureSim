@@ -14,12 +14,14 @@ class Stats_Component(Component):
     hp : int
     water : int
     max_water : int
+    speed : float
 
-    def __init__(self, display, font_name, font_size, position_component, starting_hp, starting_water,id):
+    def __init__(self, display, font_name, font_size, position_component, starting_hp, starting_water, speed, id):
         self.display = display
         self.hp = starting_hp
         self.water = starting_water
         self.max_water = starting_water
+        self.speed = speed
         self.font = pygame.font.SysFont(font_name, font_size)
         self.font_size = font_size
         self.position_component = position_component
@@ -43,11 +45,15 @@ class Stats_Component(Component):
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
         str_to_print = "WTR: " + str(self.water) + "/" + str(self.max_water)
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
-        str_to_print = "ID: " + str(self.id) 
+        str_to_print = "SPD: " + "{:.1f}".format(self.speed) 
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
-        (x,y) = self.position_component.position
-        str_to_print = str((int(x),int(y))) 
-        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        
+        if constants.BUG_FIXING:
+            str_to_print = "ID: " + str(self.id) 
+            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            (x,y) = self.position_component.position
+            str_to_print = str((int(x),int(y))) 
+            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
 
     def draw(self):
         (position_x,position_y) = self.position_component.position

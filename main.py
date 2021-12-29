@@ -19,10 +19,10 @@ game = Game(constants.MAPWIDTH,constants.MAPHEIGHT,DISPLAYSURF)
 for id in range(20):
     x = random.randint(0,game.map.width-1)
     y = random.randint(0,game.map.height-1)
-    while game.map.grid[y][x] == 1:
+    while game.map.grid[y][x] != constants.TILENAMES['grass']:
         x = random.randint(0,game.map.width-1)
         y = random.randint(0,game.map.height-1)
-    game.add_creature(Creature(game.map.grid,game.map.width,game.map.height,DISPLAYSURF,(x,y),"assets/creatures/creature.png",random.randint(10,20),random.randint(50,100),id))
+    game.add_creature(Creature(game.map.grid,game.map.width,game.map.height,DISPLAYSURF,(x,y),"assets/creatures/creature.png",random.randint(10,20),random.randint(50,100),random.randint(0,10)/10+1,id))
 
 running = True
 

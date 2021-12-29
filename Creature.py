@@ -19,11 +19,14 @@ class Creature:
     current_direction : tuple # describes the creatures current direction
     next_position : tuple #saves the position where the creature is heading
     frame : int # frame number 
+    frames_per_step : int #number of frames per step
     current_path : list # path that the creature is following (finding water, running, hunting, etc)
 
-    def __init__(self,grid,width_of_grid,height_of_grid,display,position,sprite_location,hp,water,id):
+    def __init__(self,grid,width_of_grid,height_of_grid,display,position,sprite_location,hp,water,speed,id):
         self.current_direction = None
         self.frame = 0
+        self.frames_per_step = int(constants.FPS/speed)
+
         self.alive = True
         self.grid = grid
         self.width_of_grid = width_of_grid
@@ -36,7 +39,7 @@ class Creature:
                 self.known_grid[y].append('?')
 
         self.position_component = Position_Component(position)
-        self.stats_component = Stats_Component(display,"Comic Sans",15,self.position_component,hp,water,id)
+        self.stats_component = Stats_Component(display,"Comic Sans",15,self.position_component,hp,water,speed,id)
         self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
         self.update_known_grid()
 
@@ -119,7 +122,7 @@ class Creature:
         self.frame+=1
         if self.stats_component.hp == 0:
             self.alive = False
-        if self.frame==constants.FPS:
+        if self.frame%constants.FPS==0:
             if self.stats_component.water == 0:
                 self.stats_component.add_stat("hp",-1)
             else:
@@ -136,9 +139,8 @@ class Creature:
             self.current_direction = constants.DIRECTIONS[decision]
             self.next_position = tuple(map(operator.add, self.current_direction, self.position_component.position))
             
-        self.position_component.update((position_x + self.current_direction[0]/constants.FPS,position_y + self.current_direction[1]/constants.FPS))
-        if self.frame==constants.FPS:
-            self.frame=0
+        self.position_component.update((position_x + self.current_direction[0]/self.frames_per_step,position_y + self.current_direction[1]/self.frames_per_step))
+        if self.frame%self.frames_per_step==0:
             self.position_component.update(self.next_position) # de forma a remover os erros causados por operações com floats
             self.current_direction=None
         self.stats_component.update()
