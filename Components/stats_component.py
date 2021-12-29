@@ -15,6 +15,7 @@ class Stats_Component(Component):
     water : int
     max_water : int
     speed : float
+    temp_speed : float #Speed boost when creature is running
 
     def __init__(self, display, font_name, font_size, position_component, starting_hp, starting_water, speed, id):
         self.display = display
@@ -22,6 +23,7 @@ class Stats_Component(Component):
         self.water = starting_water
         self.max_water = starting_water
         self.speed = speed
+        self.temp_speed = 0
         self.font = pygame.font.SysFont(font_name, font_size)
         self.font_size = font_size
         self.position_component = position_component
@@ -32,9 +34,25 @@ class Stats_Component(Component):
 
     def add_hp(self,amount_to_add):
         self.hp += amount_to_add
+    
+    def add_temp_speed(self,amount_to_add):
+        self.temp_speed += amount_to_add
 
     def add_stat(self,stat,amount_to_add):
         eval("self.add_" + stat + "(" + str(amount_to_add) +")")
+
+    def set_water(self,amount_to_set):
+        self.water = amount_to_set
+
+    def set_hp(self,amount_to_set):
+        self.hp = amount_to_set
+    
+    def set_temp_speed(self,amount_to_set):
+        self.temp_speed = amount_to_set
+
+    def set_stat(self,stat,amount_to_set):
+        eval("self.set_" + stat + "(" + str(amount_to_set) +")")
+        
 
     def thirsty(self):
         return self.water/self.max_water < 0.20
