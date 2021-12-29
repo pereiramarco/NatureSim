@@ -5,6 +5,7 @@ import aux.constants as constants
 import pygame
 
 class Stats_Component(Component):
+    id : int
     font : Font
     font_size : int
     display : pygame.Surface
@@ -14,7 +15,7 @@ class Stats_Component(Component):
     water : int
     max_water : int
 
-    def __init__(self, display, font_name, font_size, position_component, starting_hp, starting_water):
+    def __init__(self, display, font_name, font_size, position_component, starting_hp, starting_water,id):
         self.display = display
         self.hp = starting_hp
         self.water = starting_water
@@ -22,6 +23,7 @@ class Stats_Component(Component):
         self.font = pygame.font.SysFont(font_name, font_size)
         self.font_size = font_size
         self.position_component = position_component
+        self.id = id
 
     def add_water(self,amount_to_add):
         self.water += amount_to_add
@@ -40,6 +42,11 @@ class Stats_Component(Component):
         str_to_print = "HP: " + str(self.hp) 
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
         str_to_print = "WTR: " + str(self.water) + "/" + str(self.max_water)
+        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        str_to_print = "ID: " + str(self.id) 
+        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        (x,y) = self.position_component.position
+        str_to_print = str((int(x),int(y))) 
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
 
     def draw(self):

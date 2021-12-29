@@ -1,7 +1,7 @@
 from Components.position_component import Position_Component
 from Components.sprite_component import Sprite_Component
 from Components.stats_component import Stats_Component
-from aux.auxiliary_functions import distance_between_points, get_closest_point, lowest_cost
+from aux.auxiliary_functions import distance_between_points
 from aux.a_star_pathfinding import astar
 import aux.constants as constants
 import operator
@@ -21,7 +21,7 @@ class Creature:
     frame : int # frame number 
     current_path : list # path that the creature is following (finding water, running, hunting, etc)
 
-    def __init__(self,grid,width_of_grid,height_of_grid,display,position,sprite_location,hp,water):
+    def __init__(self,grid,width_of_grid,height_of_grid,display,position,sprite_location,hp,water,id):
         self.current_direction = None
         self.frame = 0
         self.alive = True
@@ -36,7 +36,7 @@ class Creature:
                 self.known_grid[y].append('?')
 
         self.position_component = Position_Component(position)
-        self.stats_component = Stats_Component(display,"Comic Sans",20,self.position_component,hp,water)
+        self.stats_component = Stats_Component(display,"Comic Sans",15,self.position_component,hp,water,id)
         self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
         self.update_known_grid()
 
@@ -64,31 +64,34 @@ class Creature:
         for y in range(self.height_of_grid):
             for x in range(self.width_of_grid):
                 if self.known_grid[y][x]==tile_number:
-                    dist = distance_between_points((x,y),self.position_component.position)
+                    dist = distance_between_points(self.position_component.position,(x,y))
                     if closest == None or dist < distance_between_points(self.position_component.position,closest):
                         closest = (x,y)
         return closest
     
-    #Returns true if the creature is close to water
-    def close_to_water(self):
-        (x,y) = self.position_component.position
-        for x_aux in range(x-1,x+2):
-            for y_aux in range(y-1,y+2):
-                if 0 <= x_aux < self.width_of_grid and 0 <= y_aux < self.height_of_grid and self.known_grid[y_aux][x_aux]==1:
+    #Returns True if the creature is close to tile of type tile_name
+    def close_to_tile(self,tile_name):
+        tile_type = constants.TILENAMES[tile_name]
+        positions_to_check = [(1,0),(-1,0),(0,1),(0,-1)]
+        for pos in positions_to_check:
+                (x_aux,y_aux) = tuple(map(operator.add,pos,self.position_component.position))
+                if 0 <= x_aux < self.width_of_grid and 0 <= y_aux < self.height_of_grid and self.known_grid[y_aux][x_aux]==tile_type:
                     return True
         return False
     
-    #Funçao responsável por definir a próxima direção a seguir
+    #Decides the creature's next move
     def decide_next_direction(self):
-        if self.close_to_water() and self.stats_component.thirsty():
-            self.stats_component.add_stat('water',10)
+        if self.close_to_tile('water') and self.stats_component.thirsty():#creature drinks water
+            self.stats_component.add_stat('water',int(self.stats_component.max_water/2))
             return 'stop'
         if self.current_path != None and len(self.current_path) > 1:
             direction_tuple = tuple(map(operator.sub,self.current_path[0],self.position_component.position[::-1]))
             direction = constants.INVERSE_DIRECTIONS[direction_tuple[::-1]]
             self.current_path = self.current_path[1:]
             return direction
-        if random.randint(1,100)>80:#20 percent chance the creature doesn't move
+        else:
+            self.current_path = None
+        if random.randint(1,100)>85:#15 percent chance the creature doesn't move
             return 'stop'
         possible_decisions = set()
         desired_decisions = list()
@@ -124,10 +127,11 @@ class Creature:
         (position_x,position_y) = self.position_component.position
         if self.current_direction == None:
             self.update_known_grid()
-            if self.stats_component.thirsty():
+            if self.stats_component.thirsty():# if it's thirtsty and knows where water is follows path to it
                 closest_water_tile = self.find_closest_tile('water')
                 if closest_water_tile != None:
-                    self.current_path = astar(self.known_grid, self.position_component.position ,closest_water_tile)[1:]
+                    self.current_path = astar(self.known_grid, self.position_component.position ,closest_water_tile)
+                    self.current_path = None if self.current_path==None else self.current_path[1:]
             decision = self.decide_next_direction()
             self.current_direction = constants.DIRECTIONS[decision]
             self.next_position = tuple(map(operator.add, self.current_direction, self.position_component.position))
