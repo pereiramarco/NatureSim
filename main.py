@@ -22,7 +22,15 @@ for id in range(20):
     while game.map.grid[y][x] != constants.TILENAMES['grass']:
         x = random.randint(0,game.map.width-1)
         y = random.randint(0,game.map.height-1)
-    game.add_creature(Creature(game.time,game.map.grid,DISPLAYSURF,(x,y),"assets/creatures/creature.png",random.randint(10,20),random.randint(50,100),random.randint(0,10)/10+1,id))
+    hp = random.randint(10,20)
+    starting_water = random.randint(50,100)
+    water_consumption = random.randint(5,100)/100
+    starting_food = random.randint(50,100)
+    food_consumption = random.randint(5,100)/100
+    food_source = random.choice(list(constants.FOOD_TYPES.keys()))
+    speed = random.randint(0,10)/10+1
+    creature = Creature(game.map.grid,DISPLAYSURF,(x,y),"assets/creatures/creature.png",food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id)
+    game.add_creature(creature)
 
 running = True
 

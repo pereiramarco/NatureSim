@@ -24,12 +24,15 @@ class Map:
                 self.tiles.append(Tile(position_component,sprite_component))
                 if self.grid[y][x] == 0:
                     if random.randint(1,100) > 99: #puts immovable objects in some places
-                        self.grid[y][x] = 3
+                        self.grid[y][x] = constants.TILENAMES["object"]
                         location =constants.TILESPRITES[self.grid[y][x]]
                         sprite_component = Sprite_Component(display, location, position_component)
                         self.tiles.append(Tile(position_component,sprite_component))
-                    elif random.randint(1,100) > 98: #puts food tile
-                        self.grid[y][x] = 2
+                    elif random.randint(1,100) > 99: #puts food tile
+                        if random.randint(1,100) > 20:
+                            self.grid[y][x] = constants.TILENAMES["herbivorous_food"]
+                        else:
+                            self.grid[y][x] = constants.TILENAMES["carnivorous_food"]
                         location =constants.TILESPRITES[self.grid[y][x]]
                         sprite_component = Sprite_Component(display, location, position_component)
                         self.tiles.append(Tile(position_component,sprite_component))
