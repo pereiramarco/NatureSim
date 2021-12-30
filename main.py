@@ -1,5 +1,3 @@
-#from termcolor import colored
-from Creature import Creature
 from Game import Game
 import aux.constants as constants
 import random
@@ -16,7 +14,7 @@ pygame.display.set_caption('NatureSim')
 
 game = Game(constants.MAPWIDTH,constants.MAPHEIGHT,DISPLAYSURF)
 
-for id in range(20):
+for id in range(2):
     x = random.randint(0,game.map.width-1)
     y = random.randint(0,game.map.height-1)
     while game.map.grid[y][x] != constants.TILENAMES['grass']:
@@ -29,8 +27,8 @@ for id in range(20):
     food_consumption = random.randint(5,100)/100
     food_source = random.choice(list(constants.FOOD_TYPES.keys()))
     speed = random.randint(0,10)/10+1
-    creature = Creature(game.map.grid,DISPLAYSURF,(x,y),"assets/creatures/creature.png",food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id)
-    game.add_creature(creature)
+    sprite_location = "assets/creatures/creature_" + food_source + ".png"
+    game.add_creature(DISPLAYSURF,(x,y),sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id)
 
 running = True
 

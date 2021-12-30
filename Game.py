@@ -16,12 +16,20 @@ class Game:
                 return True
         return False
 
-    def add_creature(self,creature : Creature):
+    def add_creature(self,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id):
+        creature = Creature(self.map.grid,self.creatures,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id)
         self.creatures.append(creature)
 
     def update(self):
+        dead = list()
         for creature in self.creatures:
-            creature.update()
+            died = creature.update()
+            if died:
+                dead.append(creature)
+        for creature in dead:
+            self.creatures.remove(creature)
+            self.map.add_tile(creature.position_component)
+        self.map.update()
 
     def draw(self):
         self.map.draw()

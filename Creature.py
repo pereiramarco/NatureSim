@@ -1,3 +1,4 @@
+from Components.follow_component import Follow_Component
 from Components.position_component import Position_Component
 from Components.sprite_component import Sprite_Component
 from Components.stats_component import Stats_Component
@@ -12,25 +13,28 @@ class Creature:
 
     known_grid : list #known part of the map by the creature
     grid : list # complete map
+    creatures : list #List of creatures
 
     #Components
     sprite_component : Sprite_Component
     position_component : Position_Component
     stats_component : Stats_Component
+    follow_component : Follow_Component
     
     current_direction : tuple # describes the creatures current direction
     current_path : list # path that the creature is following (finding water, running, hunting, etc)
 
-    def __init__(self,grid,display,position,sprite_location,
+    def __init__(self,grid,creatures,display,position,sprite_location,
                 food_source,hp,
                 water,water_consumption,
                 food,food_consumption,
                 speed,id):
-        self.current_direction = None
         self.alive = True
         self.grid = grid
         self.known_grid = list()
+        self.creatures = creatures
         self.current_path = None
+        self.current_direction = None
         for y in range(len(self.grid)):
             self.known_grid.append(list())
             for _ in range(len(self.grid[0])):
@@ -39,6 +43,9 @@ class Creature:
         self.position_component = Position_Component(position)
         self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,id)
         self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
+        self.follow_component = None
+        #if (id != 0):
+        #    self.follow_component = Follow_Component(self.grid,self.position_component,self.get_closest_creature())
 
     def update_known_grid(self):
         (position_x,position_y) = self.position_component.position
@@ -100,9 +107,32 @@ class Creature:
             direction = constants.INVERSE_DIRECTIONS[direction_tuple]
             self.current_path = self.current_path[1:]
             return direction
+    
+    #Decides the closest creature
+    def get_closest_creature(self):
+        closest = self.creatures[0].position_component
+        for creature in self.creatures[1:]:
+            if creature.stats_component.id == self.stats_component.id:
+                continue
+            else:
+                if distance_between_points(self.position_component.position,closest.position) > distance_between_points(self.position_component.position,creature.position_component.position):
+                    closest = creature.position_component
+        return closest
+
+    def get_possible_decisions(self):
+        possible_decisions = set()
+        for direction,tuple_dir in constants.DIRECTIONS.items():
+            (position_x,position_y) = tuple(map(operator.add, tuple_dir, self.position_component.position))
+            if 0 <= position_x < len(self.grid[0]) and 0 <= position_y < len(self.grid) and self.known_grid[position_y][position_x] == 0:
+                possible_decisions.add(direction)
+        return possible_decisions
         
     #Decides the creature's next move
     def decide_next_direction(self):
+
+        if self.follow_component != None: #If following a creature continues to follow 
+            return self.follow_component.update(self.get_possible_decisions())
+
         if self.close_to_tiles(['water']) and self.stats_component.thirsty():#creature drinks water
             self.stats_component.add_stat('water',int(self.stats_component.max_water/2))
             self.stats_component.set_stat('temp_speed',0) #Sets the temporary speed of the creature to 0 because the alarm of thirst has stopped
@@ -126,10 +156,7 @@ class Creature:
         possible_decisions = set()
         desired_decisions = list()
         #Get all possible directions
-        for direction,tuple_dir in constants.DIRECTIONS.items():
-            (position_x,position_y) = tuple(map(operator.add, tuple_dir, self.position_component.position))
-            if 0 <= position_x < len(self.grid[0]) and 0 <= position_y < len(self.grid) and self.known_grid[position_y][position_x] == 0:
-                possible_decisions.add(direction)
+        possible_decisions = self.get_possible_decisions()
         
         #Get only directions that discover part of the map
         for direction, tuple_dir in constants.DIRECTIONS.items():
@@ -150,7 +177,7 @@ class Creature:
         #Update the creature stats
         self.alive,finished_step = self.stats_component.update()
         if self.alive == False:
-            return
+            return "DIED"
         
         #Decides next_direction
         (position_x,position_y) = self.position_component.position

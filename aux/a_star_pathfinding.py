@@ -70,7 +70,7 @@ def astar(maze, start, end, allow_diagonal_movement = True):
 
     # Adding a stop condition
     outer_iterations = 0
-    max_iterations = (len(maze[0]) * len(maze) // 2)
+    max_iterations = (len(maze[0]) * len(maze) // 10)
 
     # what squares do we search
     adjacent_squares = ((0, -1), (0, 1), (-1, 0), (1, 0),)
@@ -84,7 +84,6 @@ def astar(maze, start, end, allow_diagonal_movement = True):
         if outer_iterations > max_iterations:
           # if we hit this point return the path such as it is
           # it will not contain the destination
-          warn("giving up on pathfinding too many iterations")
           return return_path(current_node)       
         
         # Get the current node

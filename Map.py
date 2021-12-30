@@ -4,8 +4,11 @@ from aux.auxiliary_functions import get_closest_point
 from Tile import Tile
 import aux.constants as constants
 import random
+import pygame
 
 class Map:
+    display : pygame.Surface #display surface
+
     grid : list #list that holds the entire grid in the form of lists being each line
     tiles : list 
     width : int # width of the grid
@@ -15,6 +18,7 @@ class Map:
         self.width = width
         self.height = height
         self.tiles = list()
+        self.display = display
         self.create_grid()
         for y in range(self.height):
             for x in range(self.width):
@@ -37,6 +41,13 @@ class Map:
                         sprite_component = Sprite_Component(display, location, position_component)
                         self.tiles.append(Tile(position_component,sprite_component))
 
+    def add_tile(self,position_component):
+        (x,y) = position_component.position
+        self.grid[y][x] = constants.TILENAMES["carnivorous_food"]
+        location =constants.TILESPRITES[self.grid[y][x]]
+        sprite_component = Sprite_Component(self.display, location, position_component)
+        self.tiles.append(Tile(position_component,sprite_component))
+    
     def create_grid(self):
         starting_points = list() # lista de tuplos com os pontos iniciais para a criação aleatória do mapa
         num_of_points = random.randint(20,40)
@@ -57,6 +68,22 @@ class Map:
             for x in range(self.width):
                 closest_starting_point = get_closest_point((x,y),starting_points)
                 self.grid[y].append(closest_starting_point)
+
+
+    def update(self):
+        random_chance = random.randint(1,1000)
+        if random_chance > 998:
+            while True:
+                x = random.randint(0,constants.MAPWIDTH-1)
+                y = random.randint(0,constants.MAPHEIGHT-1)
+                if self.grid[y][x] == constants.TILENAMES['grass']:
+                    position_component = Position_Component((x,y))
+                    self.grid[y][x] = constants.TILENAMES["herbivorous_food"]
+                    location =constants.TILESPRITES[self.grid[y][x]]
+                    sprite_component = Sprite_Component(self.display, location, position_component)
+                    self.tiles.append(Tile(position_component,sprite_component))
+                    break
+            
 
     def draw(self):
         for tile in self.tiles:

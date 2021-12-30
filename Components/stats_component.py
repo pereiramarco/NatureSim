@@ -94,8 +94,8 @@ class Stats_Component(Component):
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
         str_to_print = "SPD: {:.1f}".format(self.speed) 
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
-        str_to_print = self.food_source[:4].upper()
-        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        #str_to_print = self.food_source[:4].upper()
+        #self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
         
         if constants.BUG_FIXING:
             str_to_print = "ID: " + str(self.id) 
