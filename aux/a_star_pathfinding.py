@@ -1,6 +1,7 @@
 # Credit for this: Nicholas Swift and ryancollingwood
 # as found at https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # and https://gist.github.com/ryancollingwood/32446307e976a11a1185a5394d6657bc
+#Changes added by Marco Pereira
 
 from warnings import warn
 import heapq
@@ -135,4 +136,4 @@ def astar(maze, start, end, allow_diagonal_movement = True):
             heapq.heappush(open_list, child)
 
     warn("Couldn't get a path to destination")
-    return None
+    return return_path(current_node) #Returns path close to that node

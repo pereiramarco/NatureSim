@@ -1,3 +1,4 @@
+from math import dist
 from Components.position_component import Position_Component
 from aux.auxiliary_functions import distance_between_points
 from Components.component import Component
@@ -6,14 +7,18 @@ from aux.a_star_pathfinding import astar
 import operator
 
 class Follow_Component(Component):
+    id_follower : int #Identifier of the follower
     follower_component : Position_Component #Follower position
+    id_followed : int #Identifier of the follower
     followed_component : Position_Component #Followed position
     known_grid : list #Map to avoid hitting objects
     path : list #Path to creature to avoid hitting objects
 
 
-    def __init__(self,grid,follower,followed):
+    def __init__(self,grid,id_follower,follower,id_followed,followed):
+        self.id_follower = id_follower
         self.follower_component = follower
+        self.id_followed = id_followed
         self.followed_component = followed
         self.known_grid = grid
         self.path = list()
@@ -36,6 +41,9 @@ class Follow_Component(Component):
         decision = constants.INVERSE_DIRECTIONS[direction_tuple]
         self.path = self.path[1:]
         return decision
+
+    def distance(self):
+        return distance_between_points(self.followed_component.position,self.follower_component.position)
 
     def update(self,possible_decisions):
         

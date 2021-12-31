@@ -33,10 +33,7 @@ class Map:
                         sprite_component = Sprite_Component(display, location, position_component)
                         self.tiles.append(Tile(position_component,sprite_component))
                     elif random.randint(1,100) > 99: #puts food tile
-                        if random.randint(1,100) > 20:
-                            self.grid[y][x] = constants.TILENAMES["herbivorous_food"]
-                        else:
-                            self.grid[y][x] = constants.TILENAMES["carnivorous_food"]
+                        self.grid[y][x] = constants.TILENAMES["herbivorous_food"]
                         location =constants.TILESPRITES[self.grid[y][x]]
                         sprite_component = Sprite_Component(display, location, position_component)
                         self.tiles.append(Tile(position_component,sprite_component))
@@ -72,7 +69,7 @@ class Map:
 
     def update(self):
         random_chance = random.randint(1,1000)
-        if random_chance > 998:
+        if random_chance > 999:
             while True:
                 x = random.randint(0,constants.MAPWIDTH-1)
                 y = random.randint(0,constants.MAPHEIGHT-1)

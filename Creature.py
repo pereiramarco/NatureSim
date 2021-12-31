@@ -9,6 +9,7 @@ import operator
 import random
 
 class Creature: 
+    id : int #Identifier of creature
     alive : bool #defines if creature is alive or not
 
     known_grid : list #known part of the map by the creature
@@ -30,6 +31,7 @@ class Creature:
                 food,food_consumption,
                 speed,id):
         self.alive = True
+        self.id = id
         self.grid = grid
         self.known_grid = list()
         self.creatures = creatures
@@ -44,11 +46,9 @@ class Creature:
         self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,id)
         self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
         self.follow_component = None
-        #if (id != 0):
-        #    self.follow_component = Follow_Component(self.grid,self.position_component,self.get_closest_creature())
 
     def update_known_grid(self):
-        (position_x,position_y) = self.position_component.position
+        (position_x,position_y) = tuple( int(tup) for tup in self.position_component.position)
         for x in range(position_x-1,position_x+2):
             for y in range(position_y-1,position_y+2):
                 if 0 <= x < len(self.grid[0]) and 0 <= y < len(self.grid):
@@ -97,6 +97,9 @@ class Creature:
                 self.stats_component.set_stat('temp_speed',1)
             elif self.stats_component.hungry():# if it's hungry and knows where food is follows path to it
                 closest_needed_tile = self.find_closest_tiles(constants.FOOD_TYPES[self.stats_component.food_source])
+                if closest_needed_tile == None:
+                    closest_id,closest_creature = self.get_closest_creature_in_radius(10)
+                    self.follow_component = Follow_Component(self.known_grid,self.id,self.position_component,closest_id,closest_creature)
                 self.stats_component.set_stat('temp_speed',1)
             if closest_needed_tile != None:
                 path = astar(self.known_grid, self.position_component.position ,closest_needed_tile)
@@ -107,17 +110,27 @@ class Creature:
             direction = constants.INVERSE_DIRECTIONS[direction_tuple]
             self.current_path = self.current_path[1:]
             return direction
-    
+
+    #Is position known
+    def  is_position_known(self,position):
+        (x,y) = position
+        return self.grid[round(y)][round(x)] == constants.TILENAMES['grass']
+
     #Decides the closest creature
-    def get_closest_creature(self):
-        closest = self.creatures[0].position_component
-        for creature in self.creatures[1:]:
-            if creature.stats_component.id == self.stats_component.id:
+    def get_closest_creature_in_radius(self,radius):
+        closest = None
+        closest_id = None
+        closest_distance = None
+        for creature in self.creatures.values():
+            if creature.id == self.id:
                 continue
             else:
-                if distance_between_points(self.position_component.position,closest.position) > distance_between_points(self.position_component.position,creature.position_component.position):
+                creature_distance = distance_between_points(self.position_component.position,creature.position_component.position)
+                if closest == None or closest_distance > creature_distance and creature_distance <= radius and self.is_position_known(creature.position_component.position):
                     closest = creature.position_component
-        return closest
+                    closest_id = creature.id
+                    closest_distance = creature_distance
+        return closest_id,closest
 
     def get_possible_decisions(self):
         possible_decisions = set()
@@ -170,14 +183,29 @@ class Creature:
         decision = desired_decisions[random.randint(0,len(desired_decisions)-1)]
         return decision
     
-    def update(self):
+    #Takes care of the interactions that happened with this animal
+    def treat_interactions(self, interactions):
+        if interactions:
+            stat_interactions = list()
+            for interaction in interactions:
+                (interaction_type,id) = interaction
+                if interaction_type == "StopFollow":
+                    self.follow_component = None
+                    self.update_known_grid() #If stopped followinf updates grid in case he killed
+                else:
+                    stat_interactions.append(interaction)
+            return stat_interactions
+
+
+    def update(self,interactions):
 
         frames_per_step = self.stats_component.frames_per_step
 
         #Update the creature stats
-        self.alive,finished_step = self.stats_component.update()
+        stat_interactions = self.treat_interactions(interactions)
+        self.alive,finished_step = self.stats_component.update(stat_interactions)
         if self.alive == False:
-            return "DIED"
+            return ("Death",self.id,None)
         
         #Decides next_direction
         (position_x,position_y) = self.position_component.position
@@ -185,13 +213,15 @@ class Creature:
             self.update_known_grid()
             decision = self.decide_next_direction()
             self.current_direction = constants.DIRECTIONS[decision]
-        
 
         #Update position  
         self.position_component.update((position_x + self.current_direction[0]/frames_per_step,position_y + self.current_direction[1]/frames_per_step))
         if finished_step:
             self.position_component.update(tuple(round(itup) for itup in self.position_component.position)) # de forma a remover os erros causados por operações com floats
             self.current_direction=None
+
+        if self.follow_component != None and self.follow_component.distance() < 1:
+            return ("Attack",self.follow_component.id_follower,self.follow_component.id_followed)
         
     def draw(self):
         if self.alive:

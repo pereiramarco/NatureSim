@@ -8,7 +8,7 @@ import aux.constants as constants
 import pygame
 
 class Stats_Component(Component):
-    id : int
+    id : int #exists here to print it in case of doing bugfixing
     font : Font
     font_size : int
     display : pygame.Surface
@@ -82,7 +82,10 @@ class Stats_Component(Component):
         return self.water/self.max_water < 0.20
 
     def hungry(self):
-        return self.food/self.max_food < 0.20
+        threshold = 0.2
+        if self.food_source == "carnivorous":
+            threshold = 0.5
+        return self.food/self.max_food < threshold
 
     def update_print(self):
         self.stats_surfaces = list()
@@ -105,11 +108,16 @@ class Stats_Component(Component):
             self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
     
 
-    def update_stats(self):
-        if self.hp == 0:
+    def update_stats(self,interactions):
+        if self.hp <= 0:
             return False,None
         finished_step = self.time.frame_counter == self.frames_per_step
         if finished_step:
+            if interactions:
+                for interaction in interactions:
+                    (interaction_type,id_creature) = interaction
+                    if interaction_type == "Attack":
+                        self.hp-=3
             if self.water == 0 or self.food == 0:
                 self.hp-=1
             if self.water - self.water_consumption_per_step > 0 :
@@ -122,9 +130,9 @@ class Stats_Component(Component):
                 self.food = 0
         return True,finished_step
     
-    def update(self):
+    def update(self,interactions):
         self.frames_per_step = int(constants.FPS/(self.speed + self.temp_speed))
-        alive,finished_step = self.update_stats()
+        alive,finished_step = self.update_stats(interactions)
         self.update_print()
         self.time.update()
         if finished_step:
