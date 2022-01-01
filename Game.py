@@ -19,7 +19,7 @@ class Game:
         return False
 
     def add_creature(self,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id):
-        creature = Creature(self.map.grid,self.creatures,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id)
+        creature = Creature(self.map.grid,self.map.temporary_tiles,self.creatures,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,id)
         self.creatures[id] = creature
 
     def update(self):
@@ -37,7 +37,7 @@ class Game:
                     self.interactions[id_2].append(("Attack",id_1))
         for (creature,id) in dead:
             self.creatures.pop(id)
-            self.map.add_tile(creature.position_component)
+            self.map.add_temporary_tile(creature.position_component,"carnivorous_food",50)
             for creature in self.creatures.values(): #Tell creatures that followed this animal to stop following
                 if creature.follow_component != None and creature.follow_component.id_followed == id:
                     self.interactions[creature.id].append(("StopFollow",id))

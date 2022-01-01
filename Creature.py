@@ -13,6 +13,7 @@ class Creature:
     alive : bool #defines if creature is alive or not
 
     known_grid : list #known part of the map by the creature
+    temporary_tiles : map #Map of position to temporary tiles in the grid
     grid : list # complete map
     creatures : list #List of creatures
 
@@ -25,7 +26,7 @@ class Creature:
     current_direction : tuple # describes the creatures current direction
     current_path : list # path that the creature is following (finding water, running, hunting, etc)
 
-    def __init__(self,grid,creatures,display,position,sprite_location,
+    def __init__(self,grid,temporary_tiles,creatures,display,position,sprite_location,
                 food_source,hp,
                 water,water_consumption,
                 food,food_consumption,
@@ -33,6 +34,7 @@ class Creature:
         self.alive = True
         self.id = id
         self.grid = grid
+        self.temporary_tiles = temporary_tiles
         self.known_grid = list()
         self.creatures = creatures
         self.current_path = None
@@ -48,7 +50,7 @@ class Creature:
         self.follow_component = None
 
     def update_known_grid(self):
-        (position_x,position_y) = tuple( int(tup) for tup in self.position_component.position)
+        (position_x,position_y) = tuple( round(tup) for tup in self.position_component.position)
         for x in range(position_x-1,position_x+2):
             for y in range(position_y-1,position_y+2):
                 if 0 <= x < len(self.grid[0]) and 0 <= y < len(self.grid):
@@ -85,7 +87,7 @@ class Creature:
             for pos in positions_to_check:
                     (x_aux,y_aux) = tuple(map(operator.add,pos,self.position_component.position))
                     if 0 <= x_aux < len(self.grid[0]) and 0 <= y_aux < len(self.grid) and self.known_grid[y_aux][x_aux]==tile_type:
-                        return True
+                        return (x_aux,y_aux)
         return False
     
     #Decides path to be followed or continues previously decided path
@@ -97,7 +99,7 @@ class Creature:
                 self.stats_component.set_stat('temp_speed',1)
             elif self.stats_component.hungry():# if it's hungry and knows where food is follows path to it
                 closest_needed_tile = self.find_closest_tiles(constants.FOOD_TYPES[self.stats_component.food_source])
-                if closest_needed_tile == None:
+                if closest_needed_tile == None and self.stats_component.food_source in ['carnivorous','omnivorous']:
                     closest_id,closest_creature = self.get_closest_creature_in_radius(10)
                     self.follow_component = Follow_Component(self.known_grid,self.id,self.position_component,closest_id,closest_creature)
                 self.stats_component.set_stat('temp_speed',1)
@@ -140,28 +142,44 @@ class Creature:
                 possible_decisions.add(direction)
         return possible_decisions
         
+    #If creature is hungry or thirsty 
+    def interaction(self):
+        
+        if self.stats_component.thirsty():#creature drinks water
+            position = self.close_to_tiles(['water'])
+            if position:
+                self.stats_component.add_stat('water',int(self.stats_component.max_water/2))
+                self.stats_component.set_stat('temp_speed',0) #Sets the temporary speed of the creature to 0 because the alarm of thirst has stopped
+                self.current_path = None
+                return 'stop'
+        
+        if self.stats_component.hungry():#creature feeds itself
+            position = self.close_to_tiles(constants.FOOD_TYPES[self.stats_component.food_source])
+            if position:
+                tile = self.temporary_tiles[position]
+                max_food_to_eat = int(min(self.stats_component.max_food-self.stats_component.food,tile.hitpoints))
+                amount_food_eaten = random.randint(int(max_food_to_eat/2),max_food_to_eat)
+                self.stats_component.add_stat('food',amount_food_eaten)
+                tile.hitpoints-=amount_food_eaten
+                self.stats_component.set_stat('temp_speed',0) #Sets the temporary speed of the creature to 0 because the alarm of hunger has stopped
+                self.current_path = None
+                return 'stop'
+
     #Decides the creature's next move
     def decide_next_direction(self):
 
-        if self.follow_component != None: #If following a creature continues to follow 
-            return self.follow_component.update(self.get_possible_decisions())
-
-        if self.close_to_tiles(['water']) and self.stats_component.thirsty():#creature drinks water
-            self.stats_component.add_stat('water',int(self.stats_component.max_water/2))
-            self.stats_component.set_stat('temp_speed',0) #Sets the temporary speed of the creature to 0 because the alarm of thirst has stopped
-            self.current_path = None
-            return 'stop'
-        
-        if self.close_to_tiles(constants.FOOD_TYPES[self.stats_component.food_source]) and self.stats_component.hungry():#creature feeds itself
-            self.stats_component.add_stat('food',int(self.stats_component.max_food/2))
-            self.stats_component.set_stat('temp_speed',0) #Sets the temporary speed of the creature to 0 because the alarm of hunger has stopped
-            self.current_path = None
-            return 'stop'
+        #Decides if creature will eat or drink
+        decision = self.interaction()
+        if decision:
+            return decision
         
         #Continues previous decided path or calculates a new one if needed
         direction = self.decide_path()
         if direction!= None:
             return direction
+
+        if self.follow_component != None: #If following a creature continues to follow 
+            return self.follow_component.update(self.get_possible_decisions())
         
         #Wanders through the map if not on a mission to go somewhere
         if random.randint(1,100)>85 and self.current_path == None:#15 percent chance the creature doesn't move unless its on a mission

@@ -14,7 +14,7 @@ pygame.display.set_caption('NatureSim')
 
 game = Game(constants.MAPWIDTH,constants.MAPHEIGHT,DISPLAYSURF)
 
-for id in range(10):
+for id in range(30):
     x = random.randint(0,game.map.width-1)
     y = random.randint(0,game.map.height-1)
     while game.map.grid[y][x] != constants.TILENAMES['grass']:
