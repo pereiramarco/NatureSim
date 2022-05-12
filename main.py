@@ -28,8 +28,9 @@ for id in range(20):
     food_source = random.choice(list(constants.FOOD_TYPES.keys()))
     speed = random.randint(0,10)/10+1
     vision = 1+random.randint(0,4)
+    sex = random.choice(["F","M"])
     sprite_location = "assets/creatures/creature_" + food_source + ".png"
-    game.add_creature(DISPLAYSURF,(x,y),sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,vision,id,"he")
+    game.add_creature(DISPLAYSURF,(x,y),sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,vision,id,"species",sex)
 
 running = True
 

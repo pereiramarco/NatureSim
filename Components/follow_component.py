@@ -1,4 +1,3 @@
-from math import dist
 from Components.position_component import Position_Component
 from aux.auxiliary_functions import distance_between_points
 from Components.component import Component

@@ -11,7 +11,6 @@ import random
 class Creature: 
     id : int #Identifier of creature
     alive : bool #defines if creature is alive or not
-    species : str #defines the creature's species
 
     known_grid : list #known part of the map by the creature
     temporary_tiles : map #Map of position to temporary tiles in the grid
@@ -31,10 +30,10 @@ class Creature:
                 food_source,hp,
                 water,water_consumption,
                 food,food_consumption,
-                speed,vision,id,species):
+                speed,vision,id,species,
+                sex):
         self.alive = True
         self.id = id
-        self.species = species
         self.grid = grid
         self.temporary_tiles = temporary_tiles
         self.known_grid = list()
@@ -47,7 +46,7 @@ class Creature:
                 self.known_grid[y].append('?')
 
         self.position_component = Position_Component(position)
-        self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,vision,id)
+        self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,vision,id,species,sex)
         self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
         self.follow_component = None
 
@@ -93,8 +92,9 @@ class Creature:
             elif self.stats_component.hungry():# if it's hungry and knows where food is follows path to it
                 closest_needed_tile = self.find_closest_tiles(constants.FOOD_TYPES[self.stats_component.food_source])
                 if closest_needed_tile == None and self.stats_component.food_source in ['carnivorous','omnivorous']:
-                    closest_id,closest_creature = self.get_closest_creature_in_radius(10)
-                    self.follow_component = Follow_Component(self.known_grid,self.id,self.position_component,closest_id,closest_creature)
+                    closest_id,closest_creature = self.get_closest_creature_in_radius(self.stats_component.vision)
+                    if closest_id != None: #Has any creature close to him
+                        self.follow_component = Follow_Component(self.known_grid,self.id,self.position_component,closest_id,closest_creature)
                 self.stats_component.set_stat('temp_speed',1)
             if closest_needed_tile != None:
                 path = astar(self.known_grid, self.position_component.position ,closest_needed_tile)
@@ -117,7 +117,7 @@ class Creature:
         closest_id = None
         closest_distance = None
         for creature in self.creatures.values():
-            if creature.id == self.id:
+            if creature.id == self.id or (creature.stats_component.species == self.stats_component.species and not self.stats_component.starving()):
                 continue
             else:
                 creature_distance = distance_between_points(self.position_component.position,creature.position_component.position)

@@ -29,8 +29,14 @@ class Stats_Component(Component):
     temp_speed : float #Speed boost when creature is running
     frames_per_step : float #Number of frames per step
     time : Time #Class responsible for controlling frame passage
+    species : str
+    sex : str #String of length 1, has M or F as value
+    age : int #Age of creature in years
 
-    def __init__(self, display, font_name, font_size, position_component, food_source, starting_hp, starting_water, water_consumption, starting_food, food_consumption, speed, vision,id):
+    def __init__(self, display, font_name, font_size, position_component, 
+                    food_source, starting_hp, starting_water, water_consumption, 
+                    starting_food, food_consumption, speed, vision,id, species,
+                    sex):
         self.display = display
         self.hp = starting_hp
         self.food_source = food_source
@@ -43,6 +49,9 @@ class Stats_Component(Component):
         self.speed = speed
         self.temp_speed = 0
         self.vision = vision
+        self.species = species
+        self.age = 0
+        self.sex = sex
         self.font = pygame.font.SysFont(font_name, font_size)
         self.font_size = font_size
         self.position_component = position_component
@@ -90,6 +99,9 @@ class Stats_Component(Component):
             threshold = 0.5
         return self.food/self.max_food < threshold
 
+    def starving(self):
+        return self.food/self.max_food < 0.3
+
     def update_print(self):
         self.stats_surfaces = list()
         str_to_print = "HP: " + str(self.hp) 
@@ -100,6 +112,7 @@ class Stats_Component(Component):
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
         str_to_print = "SPD: {:.1f}".format(self.speed) 
         self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        
         #str_to_print = self.food_source[:4].upper()
         #self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
         
@@ -108,6 +121,12 @@ class Stats_Component(Component):
             self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
             (x,y) = self.position_component.position
             str_to_print = str((int(x),int(y))) 
+            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            str_to_print = "SPS: " + self.species 
+            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            str_to_print = "SEX: " + self.sex
+            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            str_to_print = "AGE: " + str(self.age)
             self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
     
 
