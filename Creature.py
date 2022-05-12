@@ -11,6 +11,7 @@ import random
 class Creature: 
     id : int #Identifier of creature
     alive : bool #defines if creature is alive or not
+    species : str #defines the creature's species
 
     known_grid : list #known part of the map by the creature
     temporary_tiles : map #Map of position to temporary tiles in the grid
@@ -30,9 +31,10 @@ class Creature:
                 food_source,hp,
                 water,water_consumption,
                 food,food_consumption,
-                speed,id):
+                speed,vision,id,species):
         self.alive = True
         self.id = id
+        self.species = species
         self.grid = grid
         self.temporary_tiles = temporary_tiles
         self.known_grid = list()
@@ -45,26 +47,17 @@ class Creature:
                 self.known_grid[y].append('?')
 
         self.position_component = Position_Component(position)
-        self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,id)
+        self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,vision,id)
         self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
         self.follow_component = None
 
     def update_known_grid(self):
         (position_x,position_y) = tuple( round(tup) for tup in self.position_component.position)
-        for x in range(position_x-1,position_x+2):
-            for y in range(position_y-1,position_y+2):
+        vision = self.stats_component.vision
+        for x in range(position_x-vision,position_x+vision+1):
+            for y in range(position_y-vision,position_y+vision+1):
                 if 0 <= x < len(self.grid[0]) and 0 <= y < len(self.grid):
                     self.known_grid[y][x] = self.grid[y][x]
-
-    #Returns the number of undiscovered tiles on one direction
-    def get_undiscovered_number(self,tuple):
-        undiscovered = 0
-        (x,y) = tuple
-        for x_aux in range(x-1,x+2):
-            for y_aux in range(y-1,y+2):
-                if 0 <= x_aux < len(self.grid[0]) and 0 <= y_aux < len(self.grid):
-                    undiscovered += 1 if self.known_grid[y_aux][x_aux]== '?' else 0
-        return undiscovered
 
     #Finds the closest tile in tile_names to the creature
     def find_closest_tiles(self,tile_names):
@@ -184,21 +177,10 @@ class Creature:
         #Wanders through the map if not on a mission to go somewhere
         if random.randint(1,100)>85 and self.current_path == None:#15 percent chance the creature doesn't move unless its on a mission
             return 'stop'
-        possible_decisions = set()
-        desired_decisions = list()
-        #Get all possible directions
-        possible_decisions = self.get_possible_decisions()
         
-        #Get only directions that discover part of the map
-        for direction, tuple_dir in constants.DIRECTIONS.items():
-            if direction in possible_decisions:
-                position_to_check = tuple(map(operator.add, tuple_dir, self.position_component.position))
-                undiscovered = self.get_undiscovered_number(position_to_check)
-                desired_decisions.extend([direction for _ in range(undiscovered)])
-        
-        if len(desired_decisions) == 0:
-            desired_decisions = list(possible_decisions)
-        decision = desired_decisions[random.randint(0,len(desired_decisions)-1)]
+        #Else chooses a direction from all possible
+        possible_decisions = list(self.get_possible_decisions())
+        decision = possible_decisions[random.randint(0,len(possible_decisions)-1)]
         return decision
     
     #Takes care of the interactions that happened with this animal

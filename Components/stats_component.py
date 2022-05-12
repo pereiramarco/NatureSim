@@ -1,3 +1,4 @@
+from ast import Constant
 from pygame.display import update
 from Components.position_component import Position_Component
 from Components.component import Component
@@ -24,11 +25,12 @@ class Stats_Component(Component):
     food : float
     max_food : int
     speed : float
+    vision : int #Radius in which animal sees
     temp_speed : float #Speed boost when creature is running
     frames_per_step : float #Number of frames per step
     time : Time #Class responsible for controlling frame passage
 
-    def __init__(self, display, font_name, font_size, position_component, food_source, starting_hp, starting_water, water_consumption, starting_food, food_consumption, speed, id):
+    def __init__(self, display, font_name, font_size, position_component, food_source, starting_hp, starting_water, water_consumption, starting_food, food_consumption, speed, vision,id):
         self.display = display
         self.hp = starting_hp
         self.food_source = food_source
@@ -40,6 +42,7 @@ class Stats_Component(Component):
         self.food_consumption_per_step = food_consumption
         self.speed = speed
         self.temp_speed = 0
+        self.vision = vision
         self.font = pygame.font.SysFont(font_name, font_size)
         self.font_size = font_size
         self.position_component = position_component
@@ -141,6 +144,8 @@ class Stats_Component(Component):
 
     def draw(self):
         (position_x,position_y) = self.position_component.position
+        if constants.BUG_FIXING:
+            pygame.draw.circle(self.display, (0,0,0), (position_x*constants.TILESIZE + constants.TILESIZE/2, position_y*constants.TILESIZE+constants.TILESIZE/2), constants.TILESIZE*self.vision, 1)
         for i,surface in enumerate(self.stats_surfaces):
             self.display.blit(surface,(position_x*constants.TILESIZE, (position_y+1)*constants.TILESIZE + i*(self.font_size/2 +2)))
 
