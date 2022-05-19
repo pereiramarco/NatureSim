@@ -2,6 +2,7 @@ from Components.follow_component import Follow_Component
 from Components.position_component import Position_Component
 from Components.sprite_component import Sprite_Component
 from Components.stats_component import Stats_Component
+from Components.aging_component import Aging_Component
 from aux.auxiliary_functions import distance_between_points
 from aux.a_star_pathfinding import astar
 import aux.constants as constants
@@ -21,6 +22,7 @@ class Creature:
     sprite_component : Sprite_Component
     position_component : Position_Component
     stats_component : Stats_Component
+    aging_component : Aging_Component #Component responsible for the creature's aging
     follow_component : Follow_Component
     
     current_direction : tuple # describes the creatures current direction
@@ -31,7 +33,7 @@ class Creature:
                 water,water_consumption,
                 food,food_consumption,
                 speed,vision,id,species,
-                sex):
+                sex,size):
         self.alive = True
         self.id = id
         self.grid = grid
@@ -46,8 +48,9 @@ class Creature:
                 self.known_grid[y].append('?')
 
         self.position_component = Position_Component(position)
-        self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,vision,id,species,sex)
-        self.sprite_component = Sprite_Component(display,sprite_location,self.position_component)
+        self.stats_component = Stats_Component(display,"Comic Sans",constants.FONTSIZE,self.position_component,food_source,hp,water,water_consumption,food,food_consumption,speed,vision,id,species,sex,size)
+        self.sprite_component = Sprite_Component(display,sprite_location,self.position_component,self.stats_component.size)
+        self.aging_component = Aging_Component(self.stats_component,self.sprite_component)
         self.follow_component = None
 
     def update_known_grid(self):
@@ -205,7 +208,9 @@ class Creature:
         stat_interactions = self.treat_interactions(interactions)
         self.alive,finished_step = self.stats_component.update(stat_interactions)
         if self.alive == False:
+            self.position_component.round()
             return ("Death",self.id,None)
+        self.aging_component.update()
         
         #Decides next_direction
         (position_x,position_y) = self.position_component.position
@@ -217,7 +222,7 @@ class Creature:
         #Update position  
         self.position_component.update((position_x + self.current_direction[0]/frames_per_step,position_y + self.current_direction[1]/frames_per_step))
         if finished_step:
-            self.position_component.update(tuple(round(itup) for itup in self.position_component.position)) # de forma a remover os erros causados por operações com floats
+            self.position_component.round() # de forma a remover os erros causados por operações com floats
             self.current_direction=None
 
         if self.follow_component != None and self.follow_component.distance() < 1:

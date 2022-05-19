@@ -38,9 +38,9 @@ class Map:
     def add_temporary_tile(self,position_component,tile_name,hitpoints):
         (x,y) = position_component.position
         self.grid[y][x] = constants.TILENAMES[tile_name]
-        location =constants.TILESPRITES[self.grid[y][x]]
+        location = constants.TILESPRITES[self.grid[y][x]]
         sprite_component = Sprite_Component(self.display, location, position_component)
-        self.temporary_tiles[position_component.position] = (Temporary_Tile(position_component,sprite_component,hitpoints))
+        self.temporary_tiles[(x,y)] = (Temporary_Tile(position_component,sprite_component,hitpoints))
     
     def create_grid(self):
         starting_points = list() # lista de tuplos com os pontos iniciais para a criação aleatória do mapa

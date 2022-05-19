@@ -8,3 +8,6 @@ class Position_Component(Component):
 
     def update(self,position):
         self.position = position
+
+    def round(self):
+        self.position = tuple(round(itup) for itup in self.position)

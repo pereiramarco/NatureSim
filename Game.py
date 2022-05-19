@@ -18,8 +18,8 @@ class Game:
                 return True
         return False
 
-    def add_creature(self,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,vision,id,species,sex):
-        creature = Creature(self.map.grid,self.map.temporary_tiles,self.creatures,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,vision,id,species,sex)
+    def add_creature(self,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,vision,id,species,sex,size):
+        creature = Creature(self.map.grid,self.map.temporary_tiles,self.creatures,DISPLAYSURF,pos,sprite_location,food_source,hp,starting_water,water_consumption,starting_food,food_consumption,speed,vision,id,species,sex,size)
         self.creatures[id] = creature
 
     def update(self):

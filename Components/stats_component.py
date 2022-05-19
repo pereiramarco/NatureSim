@@ -1,12 +1,10 @@
-from ast import Constant
-from pygame.display import update
 from Components.position_component import Position_Component
 from Components.component import Component
 from pygame.font import Font
 from aux.Time import Time
-from aux.a_star_pathfinding import return_path
 import aux.constants as constants
 import pygame
+import random
 
 class Stats_Component(Component):
     id : int #exists here to print it in case of doing bugfixing
@@ -31,12 +29,12 @@ class Stats_Component(Component):
     time : Time #Class responsible for controlling frame passage
     species : str
     sex : str #String of length 1, has M or F as value
-    age : int #Age of creature in years
+    size : int
 
     def __init__(self, display, font_name, font_size, position_component, 
                     food_source, starting_hp, starting_water, water_consumption, 
                     starting_food, food_consumption, speed, vision,id, species,
-                    sex):
+                    sex,size):
         self.display = display
         self.hp = starting_hp
         self.food_source = food_source
@@ -50,8 +48,8 @@ class Stats_Component(Component):
         self.temp_speed = 0
         self.vision = vision
         self.species = species
-        self.age = 0
         self.sex = sex
+        self.size = size
         self.font = pygame.font.SysFont(font_name, font_size)
         self.font_size = font_size
         self.position_component = position_component
@@ -102,34 +100,36 @@ class Stats_Component(Component):
     def starving(self):
         return self.food/self.max_food < 0.3
 
+    def update_size(self):
+        self.size *= 1.05
+
+    def add_stat_to_print(self,str_to_print):
+        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+
     def update_print(self):
-        self.stats_surfaces = list()
         str_to_print = "HP: " + str(self.hp) 
-        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        self.add_stat_to_print(str_to_print)
         str_to_print = "WTR: {:.1f}".format(self.water) + "/" + str(self.max_water)
-        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        self.add_stat_to_print(str_to_print)
         str_to_print = "FOOD: {:.1f}".format(self.food) + "/" + str(self.max_food)
-        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        self.add_stat_to_print(str_to_print)
         str_to_print = "SPD: {:.1f}".format(self.speed) 
-        self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        self.add_stat_to_print(str_to_print)
         
         #str_to_print = self.food_source[:4].upper()
-        #self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+        #self.add_stat_to_print(str_to_print)
         
         if constants.BUG_FIXING:
             str_to_print = "ID: " + str(self.id) 
-            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            self.add_stat_to_print(str_to_print)
             (x,y) = self.position_component.position
             str_to_print = str((int(x),int(y))) 
-            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            self.add_stat_to_print(str_to_print)
             str_to_print = "SPS: " + self.species 
-            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            self.add_stat_to_print(str_to_print)
             str_to_print = "SEX: " + self.sex
-            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
-            str_to_print = "AGE: " + str(self.age)
-            self.stats_surfaces.append(self.font.render(str_to_print, False, (0,0,0,0)))
+            self.add_stat_to_print(str_to_print)
     
-
     def update_stats(self,interactions):
         if self.hp <= 0:
             return False,None
@@ -165,6 +165,6 @@ class Stats_Component(Component):
         (position_x,position_y) = self.position_component.position
         if constants.BUG_FIXING:
             pygame.draw.circle(self.display, (0,0,0), (position_x*constants.TILESIZE + constants.TILESIZE/2, position_y*constants.TILESIZE+constants.TILESIZE/2), constants.TILESIZE*self.vision, 1)
-        for i,surface in enumerate(self.stats_surfaces):
+        for i,surface in enumerate(self.stats_surfaces): # Print all the stats to show
             self.display.blit(surface,(position_x*constants.TILESIZE, (position_y+1)*constants.TILESIZE + i*(self.font_size/2 +2)))
-
+        self.stats_surfaces = list()
